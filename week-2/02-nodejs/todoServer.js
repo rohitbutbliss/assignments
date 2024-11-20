@@ -39,11 +39,101 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+
+const express = require("express");
+const fs = require("fs");
+const bodyParser = require("body-parser");
+
+const app = express();
+
+app.use(express.json());
+
+app.get("/todos", (req, res) => {
+  fs.readFile("todos.json", (err, data) => {
+    const dataArray = JSON.parse(data);
+    res.status(200).json(dataArray);
+  });
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  fs.readFile("todos.json", (err, data) => {
+    const dataArray = JSON.parse(data);
+
+    const todo = dataArray.find((todo) => todo.id == id);
+    if (todo) return res.status(200).json(todo);
+    return res.status(404).json({ message: "data not found" });
+  });
+});
+
+app.post("/todos", (req, res) => {
+  const title = req.body.title;
+  const completed = req.body.completed;
+  const description = req.body.description;
+  const newTodo = {
+    id: Number.parseInt(Math.random() * 1000000),
+    title: title,
+    completed: completed,
+    description: description,
+  };
+
+  fs.readFile("todos.json", (err, data) => {
+    const dataArray = JSON.parse(data);
+    dataArray.push(newTodo);
+    fs.writeFile("todos.json", JSON.stringify(dataArray), (err) => {
+      if (err) return res.status(404).json({ message: "Data not found" });
+    });
+
+    return res.status(201).json(newTodo);
+  });
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+
+  fs.readFile("todos.json", (err, data) => {
+    const dataArray = JSON.parse(data);
+    const index = dataArray.findIndex((todo) => todo.id == id);
+
+    if (index === -1)
+      return json.status(404).json({ message: "data not found" });
+
+    const title = req.body.title;
+    const completed = req.body.completed;
+    const description = req.body.description;
+
+    dataArray[index].title = title;
+    dataArray[index].completed = completed;
+    dataArray[index].description = description;
+
+    fs.writeFile("todos.json", JSON.stringify(dataArray), (err) => {});
+
+    return res.status(200).json({ message: "updated successfully" });
+  });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  fs.readFile("todos.json", (err, data) => {
+    const dataArray = JSON.parse(data);
+    const index = dataArray.findIndex((todo) => todo.id == id);
+    if (index === -1)
+      return res.status(404).json({ message: "data not found" });
+
+    dataArray.splice(index, 1);
+
+    fs.writeFile("todos.json", JSON.stringify(dataArray), (err) => {
+      if (err) return res.status(404).json("resource not found");
+    });
+
+    return res.status(200).json({ message: "item deleted succesfully" });
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ message: "endpoint not found" });
+});
+
+app.listen(3000);
+
+//module.exports = app;
