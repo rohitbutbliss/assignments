@@ -43,13 +43,13 @@
 const express = require("express");
 const fs = require("fs");
 const bodyParser = require("body-parser");
-
+const path = require("path");
 const app = express();
 
 app.use(express.json());
 
 app.get("/todos", (req, res) => {
-  fs.readFile("todos.json", (err, data) => {
+  fs.readFile(path.join(__dirname, "./todos.json"), (err, data) => {
     const dataArray = JSON.parse(data);
     res.status(200).json(dataArray);
   });
@@ -134,6 +134,6 @@ app.use((req, res) => {
   res.status(404).json({ message: "endpoint not found" });
 });
 
-app.listen(3000);
+//app.listen(3000);
 
-//module.exports = app;
+module.exports = app;
